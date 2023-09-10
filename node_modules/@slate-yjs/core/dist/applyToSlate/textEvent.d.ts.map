@@ -1,0 +1,1 @@
+{"version":3,"file":"textEvent.d.ts","sourceRoot":"","sources":["../../src/applyToSlate/textEvent.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,MAAM,EAAiB,SAAS,EAAc,MAAM,OAAO,CAAC;AACrE,OAAO,KAAK,CAAC,MAAM,KAAK,CAAC;AA6OzB,wBAAgB,mBAAmB,CACjC,UAAU,EAAE,CAAC,CAAC,OAAO,EACrB,MAAM,EAAE,MAAM,EACd,KAAK,EAAE,CAAC,CAAC,UAAU,GAClB,SAAS,EAAE,CAqCb"}
