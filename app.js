@@ -42,7 +42,7 @@ const server = Server.configure({
   },
   async onDisconnect(data) {
     // Output some information
-    console.log(`"${data.context.user.name}" has disconnected.`);
+    console.log(`disconnected;`, server.getConnectionsCount());
   },
 });
 
