@@ -14,7 +14,7 @@ const initialValue = [
       {
         type: "paragraph",
         children: [{ type: "text", text: "start123345" }],
-      }
+      },
     ],
   },
 ];
@@ -22,6 +22,7 @@ const initialValue = [
 // Setup the server
 const server = Server.configure({
   port: 1234,
+  host: "192.168.0.37",
 
   // Add logging
   extensions: [new Logger()],
@@ -35,6 +36,13 @@ const server = Server.configure({
     }
 
     return data.document;
+  },
+  async connected() {
+    console.log("connections:", server.getConnectionsCount());
+  },
+  async onDisconnect(data) {
+    // Output some information
+    console.log(`"${data.context.user.name}" has disconnected.`);
   },
 });
 
