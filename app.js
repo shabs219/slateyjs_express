@@ -299,7 +299,7 @@ const server = Server.configure({
 const { app } = expressWebsockets(express());
 
 // A basic http route
-app.get("/", (request, response) => {
+app.get("/ws", (request, response) => {
   response.send("Hello World!");
 });
 
@@ -307,7 +307,7 @@ app.get("/", (request, response) => {
 // Note: make sure to include a parameter for the document name.
 // You can set any contextual data like in the onConnect hook
 // and pass it to the handleConnection method.
-app.ws("/collaboration/:document", (websocket, request) => {
+app.ws("/ws/collaboration/:document", (websocket, request) => {
   console.log("Entering the socket endpoint");
   console.info(request.path);
   const docId = request.params.document;
