@@ -91,7 +91,7 @@ const Document = mongoose.model("Document", {
 
 // Configure Hocuspocus
 const server = Server.configure({
-  name: "slate-yjs-demo",
+  // name: "6512c4b6d56d9fbb7be2b9a1",
   port: 1234,
   timeout: 30000,
   // Add logging
@@ -108,26 +108,27 @@ const server = Server.configure({
   //   return data.document;
   // },
   async onStoreDocument(data) {
-    console.log(`data.document inside onStoreDocument inside provier\n`, data);
+    console.log("##### onStoreDocument #####")
+    // console.log(`data.document inside onStoreDocument inside provier\n`, data);
     const sharedRoot = data.document.get("content", Y.XmlText);
 
-    console.log("SharedRoot inside onStoreDocumentHook\n", sharedRoot);
+    // console.log("SharedRoot inside onStoreDocumentHook\n", sharedRoot);
 
     const slateElementOnStore = yTextToSlateElement(sharedRoot);
 
     const dataToStore = slateElementOnStore.children;
 
-    console.log("dataToStore \n", dataToStore);
-    console.log("typeOf dataToStore\n", typeof dataToStore);
+    // console.log("dataToStore \n", dataToStore);
+    // console.log("typeOf dataToStore\n", typeof dataToStore);
 
     const dataToStoreJsonString = JSON.stringify(dataToStore);
-    console.log("dataToStoreJsonString \n", dataToStoreJsonString);
-    console.log("typeOf dataToStoreJsonString\n", typeof dataToStoreJsonString);
+    // console.log("dataToStoreJsonString \n", dataToStoreJsonString);
+    // console.log("typeOf dataToStoreJsonString\n", typeof dataToStoreJsonString);
 
     const { docId } = data.context;
     //   docId = data.requestParameters.get("docId");
     //   const token = data.requestParameters.get("token");
-    console.log(`docId inside onStoreDocument\n`, docId);
+    // console.log(`docId inside onStoreDocument\n`, docId);
 
     // mongoose.connect(
     //   "mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
@@ -142,21 +143,21 @@ const server = Server.configure({
       { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
     )
       .then((updatedDocument) => {
-        console.log(`Entering the mongoose document then codeBlock`);
+        // console.log(`Entering the mongoose document then codeBlock`);
         if (updatedDocument) {
           // Document with the specified _docid exists and has been updated
-          console.log("Updated document:", updatedDocument);
+          // console.log("Updated document:", updatedDocument);
         } else {
           // Document with the specified _docid didn't exist and has been created
-          console.log("Created new document.");
+          // console.log("Created new document.");
         }
       })
       .catch((error) => {
-        console.error("Error:", error);
+        // console.error("Error:", error);
       })
       .finally(() => {
         // Close the MongoDB connection when done
-        console.log(`Entering the mongoose document finally codeBlock`);
+        // console.log(`Entering the mongoose document finally codeBlock`);
         // mongoose.connection.close();
       });
 
@@ -177,14 +178,15 @@ const server = Server.configure({
   },
 
   async onLoadDocument(data) {
+    console.log("##### onLoadDocument #####")
     // console.log("data.document \n", data.document); // Load the initial value in case the document is empty
-    // console.log("data.document.name \n", data.document.name);
+    console.log("data.document.name \n", data.document.name);
     // console.log(
     //   `data.document.isEmpty("content") \n`,
     //   data.document.isEmpty("content")
     // );
 
-    console.log(`context \n`, data.context);
+    // console.log(`context \n`, data.context);
     const { docId } = data.context;
 
     // let getDoc;
@@ -193,13 +195,13 @@ const server = Server.configure({
         if (foundDocument) {
           // Document with the specified _docid has been found
 
-          console.log("################ document Found #################");
-          console.log(foundDocument);
+          // console.log("################ document Found #################");
+          // console.log(foundDocument);
 
-          console.log(`foundDocument.content\n`, foundDocument.content);
+          // console.log(`foundDocument.content\n`, foundDocument.content);
 
           const parsedContent = JSON.parse(foundDocument.content);
-          console.log(`parsedContent  \n`,parsedContent);
+          // console.log(`parsedContent  \n`,parsedContent);
           // const binaryString = atob(foundDocument.content);
           // const uint8Array = Uint8Array.from(binaryString, (char) =>
           //   char.charCodeAt(0)
@@ -221,31 +223,31 @@ const server = Server.configure({
           const insertDelta = slateNodesToInsertDelta(parsedContent);
 
           const sharedRoot = data.document.get("content", Y.XmlText);
-          console.log(`sharedRoot \n`, sharedRoot);
+          // console.log(`sharedRoot \n`, sharedRoot);
           sharedRoot.applyDelta(insertDelta);
 
           // sharedRoot.delete(0, sharedRoot.length); // Clear the existing content
           // sharedRoot.insert(0, contentArray.toArray());
 
-          console.log("Found document:", foundDocument);
+          // console.log("Found document:", foundDocument);
         } else {
           // Document with the specified _docid does not exist
 
-          console.log("Found document:", foundDocument);
+          // console.log("Found document:", foundDocument);
 
           const insertDelta = slateNodesToInsertDelta(initialValue);
 
           const sharedRoot = data.document.get("content", Y.XmlText);
-          console.log(`sharedRoot \n`, sharedRoot);
+          // console.log(`sharedRoot \n`, sharedRoot);
           sharedRoot.applyDelta(insertDelta);
 
           const slateElement = yTextToSlateElement(sharedRoot);
-          console.log("slateElement \n", slateElement);
-          console.log("Document not found.");
+          // console.log("slateElement \n", slateElement);
+          // console.log("Document not found.");
         }
       })
       .catch((error) => {
-        console.error("Error:", error);
+        // console.error("Error:", error);
       })
       .finally(() => {
         // Close the MongoDB connection when done
@@ -320,7 +322,9 @@ app.ws("/ws/collaboration/:document", (websocket, request) => {
     docId,
   };
 
+  // server.configure({name: docId})
   server.handleConnection(websocket, request, context);
+  
 });
 
 // Start the server
