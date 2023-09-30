@@ -44,7 +44,7 @@ const Document123321 = mongoose.model("Document123321", {
 });
 
 Document123321.findOneAndUpdate(
-  { _docid: 123 },
+  { _docid: Math.random() },
   { content: '123' },
   { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
 )
