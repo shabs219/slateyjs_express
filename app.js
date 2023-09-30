@@ -1,5 +1,5 @@
 mongoose.connect(
-  "mongodb://localhost:27017",
+  "mongodb://127.0.0.1:27017/ihx-clm",
   // "mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
   {
     useNewUrlParser: true,
