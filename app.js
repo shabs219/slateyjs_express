@@ -38,7 +38,7 @@ const initialValue2 = [
     ],
   },
 ];
-const Document123321 = mongoose.model("Document", {
+const Document123321 = mongoose.model("Document123321", {
   _docid: String,
   content: String,
 });
