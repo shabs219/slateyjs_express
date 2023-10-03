@@ -111,7 +111,7 @@ const server = Server.configure({
 
     const Document = mongoose.connection.db.collection("documents");
 
-    const objId = new ObjectId(docId);
+    const objId = new ObjectId(data.document.name);
 
     const result = await Document.findOne({ _id: objId });
 
@@ -166,7 +166,7 @@ const server = Server.configure({
 
     const Document = mongoose.connection.db.collection("documents");
 
-    const objId = new ObjectId(docId);
+    const objId = new ObjectId(data.document.name);
 
     const result = await Document.findOne({ _id: objId });
 
