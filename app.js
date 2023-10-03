@@ -192,7 +192,7 @@ const server = Server.configure({
 
     console.log("doc Contents\n", doc);
 
-    if (doc) {
+    if (doc.length>0) {
       const insertDelta = slateNodesToInsertDelta(doc);
 
       const sharedRoot = data.document.get("content", Y.XmlText);
