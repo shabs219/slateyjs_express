@@ -167,7 +167,7 @@ const server = Server.configure({
 
     const Document = mongoose.connection.db.collection("documents");
 
-    const objId = new ObjectId("651bf5a225b63528471f5b12");
+    const objId = new ObjectId(data.document.name);
 
     console.log("typeof data.document.name\n", objId);
 
