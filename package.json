@@ -17,7 +17,7 @@
     "express-ws": "^5.0.2",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
-    "mongodb": "^6.1.0",
+    "mongodb": "^5.9.0",
     "mongoose": "^7.5.2",
     "morgan": "~1.9.1",
     "object-sizeof": "^2.6.3",
