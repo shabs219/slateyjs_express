@@ -286,7 +286,7 @@ app.ws("/ws/collaboration/:document", (websocket, request) => {
     //   name: "Jane",
     // },
     // docId,
-    docId: "64e35da4a93509ff86f1e941",
+    docId,
   };
 
   server.handleConnection(websocket, request, context);
