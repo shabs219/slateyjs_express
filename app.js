@@ -113,7 +113,7 @@ const server = Server.configure({
 
     const objId = new ObjectId(data.document.name);
 
-    console.log("typeof data.document.name\n", typeof data.document.name);
+
 
     const result = await Document.findOne({ _id: objId });
 
@@ -169,6 +169,8 @@ const server = Server.configure({
     const Document = mongoose.connection.db.collection("documents");
 
     const objId = new ObjectId(data.document.name);
+
+    console.log("typeof data.document.name\n", typeof data.document.name);
 
     const result = await Document.findOne({ _id: objId });
 
