@@ -1,11 +1,19 @@
-mongoose.connect(
-  "mongodb://127.0.0.1:27017/ihx-clm",
-  // "mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-);
+mongoose
+  .connect(
+    // "mongodb+srv://parikshith:Lqs55hsYgDJ66EAH@ihx.rgbcqfy.mongodb.net/ihx",
+    "mongodb://localhost:27017",
+    // "mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }
+  )
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+  });
 
 import express, { request } from "express";
 import expressWebsockets from "express-ws";
@@ -15,6 +23,7 @@ import { Logger } from "@hocuspocus/extension-logger";
 import * as Y from "yjs";
 import mongoose from "mongoose";
 import sizeof from "object-sizeof";
+import { ObjectId } from "mongodb";
 
 const initialValue = [
   {
@@ -38,33 +47,33 @@ const initialValue2 = [
     ],
   },
 ];
+// const Document123321 = mongoose.model("Document123321", {
+//   _docid: String,
+//   content: String,
+// });
+
+// Document123321.findOneAndUpdate(
+//   { _docid: 123 },
+//   { content: "123" },
+//   { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
+// )
+//   .then((updatedDocument) => {
+//     if (updatedDocument) {
+//     } else {
+//       // Document with the specified _docid didn't exist and has been created
+//       // console.log("Created new document.");
+//     }
+//   })
+//   .catch((error) => {
+//     console.error("Error:", error);
+//   })
+//   .finally(() => {
+//     // Close the MongoDB connection when done
+//     // console.log(`Entering the mongoose document finally codeBlock`);
+//     mongoose.connection.close();
+//   });
+
 const Document123321 = mongoose.model("Document123321", {
-  _docid: String,
-  content: String,
-});
-
-Document123321.findOneAndUpdate(
-  { _docid: Math.random() },
-  { content: '123' },
-  { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
-)
-  .then((updatedDocument) => {
-    if (updatedDocument) {
-    } else {
-      // Document with the specified _docid didn't exist and has been created
-      // console.log("Created new document.");
-    }
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-  })
-  .finally(() => {
-    // Close the MongoDB connection when done
-    // console.log(`Entering the mongoose document finally codeBlock`);
-    mongoose.connection.close();
-  });
-
-const Document = mongoose.model("Document", {
   _docid: String,
   content: String,
 });
@@ -86,7 +95,7 @@ const server = Server.configure({
 
     // console.log("dataToStore \n", dataToStore);
     // console.log("typeOf dataToStore\n", typeof dataToStore);
-    console.log("sizeOf dataToStore\n", sizeof(dataToStore));
+    console.log("sizeOf dataToStore\n", dataToStore);
 
     const dataToStoreJsonString = JSON.stringify(dataToStore);
     // console.log("dataToStoreJsonString \n", dataToStoreJsonString);
@@ -98,26 +107,52 @@ const server = Server.configure({
 
     const { docId } = data.context;
 
-    Document.findOneAndUpdate(
-      { _docid: docId },
-      { content: dataToStoreJsonString },
-      { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
-    )
-      .then((updatedDocument) => {
-        if (updatedDocument) {
-        } else {
-          // Document with the specified _docid didn't exist and has been created
-          // console.log("Created new document.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      })
-      .finally(() => {
-        // Close the MongoDB connection when done
-        // console.log(`Entering the mongoose document finally codeBlock`);
-        // mongoose.connection.close();
-      });
+    // const updatedDocument = await documentVersions.findOne({id: })
+
+    const Document = mongoose.connection.db.collection("documents");
+
+    const objId = new ObjectId(docId);
+
+    const result = await Document.findOne({ _id: objId });
+
+    console.log("Document\n", result);
+
+    const head_document_version = result.head_document_version;
+    console.log("result.head_document_version\n", head_document_version);
+
+    const documentVersions =
+      mongoose.connection.db.collection("documentversions");
+    // {_id: ObjectId("64e2f658006354046b294d25")}
+
+    // const objId123 = new ObjectId("64e2f658006354046b294d25");
+    const updatedContent = await documentVersions.findOneAndUpdate(
+      { _id: head_document_version },
+      { $set: { body: dataToStore } },
+      { upsert: true, new: true }
+    );
+
+    console.log("documentVersion\n", updatedContent);
+
+    // collection.findOneAndUpdate(
+    //   { _docid: docId },
+    //   { content: dataToStoreJsonString },
+    //   { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
+    // )
+    //   .then((updatedDocument) => {
+    //     if (updatedDocument) {
+    //     } else {
+    //       // Document with the specified _docid didn't exist and has been created
+    //       // console.log("Created new document.");
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error);
+    //   })
+    //   .finally(() => {
+    //     // Close the MongoDB connection when done
+    //     // console.log(`Entering the mongoose document finally codeBlock`);
+    //     // mongoose.connection.close();
+    //   });
 
     return data.document;
   },
@@ -129,35 +164,76 @@ const server = Server.configure({
 
     const { docId } = data.context;
 
-    Document.findOne({ _docid: docId })
-      .then((foundDocument) => {
-        if (foundDocument) {
-          const parsedContent = JSON.parse(foundDocument.content);
+    const Document = mongoose.connection.db.collection("documents");
 
-          // Update the Slate.js document with the parsed content
-          const insertDelta = slateNodesToInsertDelta(parsedContent);
+    const objId = new ObjectId(docId);
 
-          const sharedRoot = data.document.get("content", Y.XmlText);
-          // console.log(`sharedRoot \n`, sharedRoot);
-          sharedRoot.applyDelta(insertDelta);
-        } else {
-          // Document with the specified _docid does not exist
+    const result = await Document.findOne({ _id: objId });
 
-          const insertDelta = slateNodesToInsertDelta(initialValue);
+    console.log("Document\n", result);
 
-          const sharedRoot = data.document.get("content", Y.XmlText);
-          sharedRoot.applyDelta(insertDelta);
+    const head_document_version = result.head_document_version;
+    console.log("result.head_document_version\n", head_document_version);
 
-          const slateElement = yTextToSlateElement(sharedRoot);
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      })
-      .finally(() => {
-        // Close the MongoDB connection when done
-        // mongoose.connection.close();
-      });
+    const documentVersions =
+      mongoose.connection.db.collection("documentversions");
+    // {_id: ObjectId("64e2f658006354046b294d25")}
+
+    const content = await documentVersions.findOne({
+      _id: head_document_version,
+    });
+
+    console.log("documentVersion\n", content);
+
+    const doc = content.body;
+
+    console.log("doc Contents\n", doc);
+
+    if (doc) {
+      const insertDelta = slateNodesToInsertDelta(doc);
+
+      const sharedRoot = data.document.get("content", Y.XmlText);
+      // console.log(`sharedRoot \n`, sharedRoot);
+      sharedRoot.applyDelta(insertDelta);
+    } else {
+      // Document with the specified _docid does not exist
+
+      const insertDelta = slateNodesToInsertDelta(initialValue);
+
+      const sharedRoot = data.document.get("content", Y.XmlText);
+      sharedRoot.applyDelta(insertDelta);
+
+      const slateElement = yTextToSlateElement(sharedRoot);
+    }
+    // Document123321.findOne({ _docid: docId })
+    //   .then((foundDocument) => {
+    //     if (foundDocument) {
+    //       const parsedContent = JSON.parse(foundDocument.content);
+
+    //       // Update the Slate.js document with the parsed content
+    //       const insertDelta = slateNodesToInsertDelta(parsedContent);
+
+    //       const sharedRoot = data.document.get("content", Y.XmlText);
+    //       // console.log(`sharedRoot \n`, sharedRoot);
+    //       sharedRoot.applyDelta(insertDelta);
+    //     } else {
+    //       // Document with the specified _docid does not exist
+
+    //       const insertDelta = slateNodesToInsertDelta(initialValue);
+
+    //       const sharedRoot = data.document.get("content", Y.XmlText);
+    //       sharedRoot.applyDelta(insertDelta);
+
+    //       const slateElement = yTextToSlateElement(sharedRoot);
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error);
+    //   })
+    //   .finally(() => {
+    //     // Close the MongoDB connection when done
+    //     // mongoose.connection.close();
+    //   });
 
     return data.document;
   },
@@ -177,7 +253,21 @@ const server = Server.configure({
 const { app } = expressWebsockets(express());
 
 // A basic http route
-app.get("/ws", (request, response) => {
+app.get("/ws", async (request, response) => {
+  // const collection = mongoose.connection.db.collection("document123321");
+
+  // console.log(collection);
+  // .find({})
+
+  // const doc = await collection.find({}).toArray();
+
+  // .countDocuments()
+  // .then((doc) => {
+  // console.log(doc);
+  // })
+  // .catch((err) => {
+  //   console.error("Error connecting to MongoDB:", err);
+  // });
   response.send("Hello World!");
 });
 
@@ -186,20 +276,22 @@ app.get("/ws", (request, response) => {
 // You can set any contextual data like in the onConnect hook
 // and pass it to the handleConnection method.
 app.ws("/ws/collaboration/:document", (websocket, request) => {
-  console.log("Entering the socket endpoint");
-  console.info(request.path);
+  // console.log("Entering the socket endpoint");
+  // console.info(request.path);
   const docId = request.params.document;
-  console.log(docId);
+  // console.log(docId);
   const context = {
     // user: {
     //   id: 1234,
     //   name: "Jane",
     // },
-    docId,
+    // docId,
+    docId: "64e35da4a93509ff86f1e941",
   };
 
   server.handleConnection(websocket, request, context);
 });
 
 // Start the server
-app.listen(1234, () => console.log("Listening on http://127.0.0.1:1234"));
+const PORT = 2121;
+app.listen(PORT, () => console.log(`Listening on http://127.0.0.1:${PORT}`));
