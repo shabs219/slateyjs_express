@@ -293,5 +293,5 @@ app.ws("/ws/collaboration/:document", (websocket, request) => {
 });
 
 // Start the server
-const PORT = 2121;
+const PORT = 1234;
 app.listen(PORT, () => console.log(`Listening on http://127.0.0.1:${PORT}`));
