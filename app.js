@@ -1,8 +1,8 @@
 mongoose
   .connect(
     // "mongodb+srv://parikshith:Lqs55hsYgDJ66EAH@ihx.rgbcqfy.mongodb.net/ihx",
-    "mongodb://127.0.0.1:27017/ihx?replicaSet=rs0",
-    // "mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
+    "mongodb://127.0.0.1:27017/ihx-clm?replicaSet=rs0",
+    //"mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -113,13 +113,12 @@ const server = Server.configure({
 
     const objId = new ObjectId(data.document.name);
 
-
-
     const result = await Document.findOne({ _id: objId });
 
     console.log("Document\n", result);
 
     const head_document_version = result.head_document_version;
+
     console.log("result.head_document_version\n", head_document_version);
 
     const documentVersions =
@@ -168,9 +167,9 @@ const server = Server.configure({
 
     const Document = mongoose.connection.db.collection("documents");
 
-    const objId = new ObjectId(data.document.name);
+    const objId = new ObjectId("651bf5a225b63528471f5b12");
 
-    console.log("typeof data.document.name\n", typeof data.document.name);
+    console.log("typeof data.document.name\n", objId);
 
     const result = await Document.findOne({ _id: objId });
 
