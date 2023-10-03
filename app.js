@@ -1,7 +1,7 @@
 mongoose
   .connect(
     // "mongodb+srv://parikshith:Lqs55hsYgDJ66EAH@ihx.rgbcqfy.mongodb.net/ihx",
-    "mongodb://localhost:27017/ihx-clm",
+    "mongodb://127.0.0.1:27017/ihx?replicaSet=rs0",
     // "mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
     {
       useNewUrlParser: true,
