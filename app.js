@@ -31,7 +31,7 @@ const initialValue = [
     children: [
       {
         type: "paragraph",
-        children: [{ type: "text", text: "start typing...." }],
+        children: [{ type: "text", text: "" }],
       },
     ],
   },
