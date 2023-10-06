@@ -26,15 +26,15 @@ import sizeof from "object-sizeof";
 import { ObjectId } from "mongodb";
 
 const initialValue = [
-  {
-    type: "page",
-    children: [
+  // {
+  //   type: "page",
+  //   children: [
       {
         type: "paragraph",
         children: [{ type: "text", text: "" }],
       },
-    ],
-  },
+    // ],
+  // },
 ];
 const initialValue2 = [
   {
