@@ -194,15 +194,15 @@ app.ws("/ws/variables/:document", (websocket, request) => {
 
   websocket.on('message', (message) => {
     try {
-      const parsedMessage = message;
+      const parsedMessage = JSON.parse(message);  
       console.info(parsedMessage)
-      if (parsedMessage.event === 'hello') {
+      if (parsedMessage.event) {
         console.log('Received a custom event from a client:', parsedMessage.data);
 
         connectedClients.forEach(client => {
           if (client !== websocket) {
             // Don't send the message back to the sender
-            client.send(JSON.stringify({ event: 'response-event', data: 'Response data' }));
+            client.send(JSON.stringify({ event: parsedMessage.event, data: parsedMessage.data }));
           }
         });
       }
