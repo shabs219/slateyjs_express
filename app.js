@@ -26,15 +26,12 @@ import sizeof from "object-sizeof";
 import { ObjectId } from "mongodb";
 
 const initialValue = [
-  // {
-  //   type: "page",
-  //   children: [
-      {
-        type: "paragraph",
-        children: [{ type: "text", text: "" }],
-      },
-    // ],
-  // },
+
+  {
+    type: "paragraph",
+    children: [{ type: "text", text: "" }],
+  },
+
 ];
 const initialValue2 = [
   {
@@ -47,36 +44,9 @@ const initialValue2 = [
     ],
   },
 ];
-// const Document123321 = mongoose.model("Document123321", {
-//   _docid: String,
-//   content: String,
-// });
 
-// Document123321.findOneAndUpdate(
-//   { _docid: 123 },
-//   { content: "123" },
-//   { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
-// )
-//   .then((updatedDocument) => {
-//     if (updatedDocument) {
-//     } else {
-//       // Document with the specified _docid didn't exist and has been created
-//       // console.log("Created new document.");
-//     }
-//   })
-//   .catch((error) => {
-//     console.error("Error:", error);
-//   })
-//   .finally(() => {
-//     // Close the MongoDB connection when done
-//     // console.log(`Entering the mongoose document finally codeBlock`);
-//     mongoose.connection.close();
-//   });
 
-const Document123321 = mongoose.model("Document123321", {
-  _docid: String,
-  content: String,
-});
+
 
 // Configure Hocuspocus
 const server = Server.configure({
@@ -92,22 +62,16 @@ const server = Server.configure({
     const slateElementOnStore = yTextToSlateElement(sharedRoot);
 
     const dataToStore = slateElementOnStore.children;
-
-    // console.log("dataToStore \n", dataToStore);
-    // console.log("typeOf dataToStore\n", typeof dataToStore);
     console.log("sizeOf dataToStore\n", dataToStore);
 
     const dataToStoreJsonString = JSON.stringify(dataToStore);
-    // console.log("dataToStoreJsonString \n", dataToStoreJsonString);
-    // console.log("typeOf dataToStoreJsonString\n", typeof dataToStoreJsonString);
+
     console.log(
       "sizeOf dataToStoreJsonString\n",
       sizeof(dataToStoreJsonString)
     );
 
     const { docId } = data.context;
-
-    // const updatedDocument = await documentVersions.findOne({id: })
 
     const Document = mongoose.connection.db.collection("documents");
 
@@ -123,9 +87,7 @@ const server = Server.configure({
 
     const documentVersions =
       mongoose.connection.db.collection("documentversions");
-    // {_id: ObjectId("64e2f658006354046b294d25")}
 
-    // const objId123 = new ObjectId("64e2f658006354046b294d25");
     const updatedContent = await documentVersions.findOneAndUpdate(
       { _id: head_document_version },
       { $set: { body: dataToStore } },
@@ -133,27 +95,6 @@ const server = Server.configure({
     );
 
     console.log("documentVersion\n", updatedContent);
-
-    // collection.findOneAndUpdate(
-    //   { _docid: docId },
-    //   { content: dataToStoreJsonString },
-    //   { upsert: true, new: true } // Set upsert to true to create if not exists and new to true to return the updated document
-    // )
-    //   .then((updatedDocument) => {
-    //     if (updatedDocument) {
-    //     } else {
-    //       // Document with the specified _docid didn't exist and has been created
-    //       // console.log("Created new document.");
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error);
-    //   })
-    //   .finally(() => {
-    //     // Close the MongoDB connection when done
-    //     // console.log(`Entering the mongoose document finally codeBlock`);
-    //     // mongoose.connection.close();
-    //   });
 
     return data.document;
   },
@@ -192,7 +133,7 @@ const server = Server.configure({
 
     console.log("doc Contents\n", doc);
 
-    if (doc.length>0) {
+    if (doc.length > 0) {
       const insertDelta = slateNodesToInsertDelta(doc);
 
       const sharedRoot = data.document.get("content", Y.XmlText);
@@ -208,35 +149,6 @@ const server = Server.configure({
 
       const slateElement = yTextToSlateElement(sharedRoot);
     }
-    // Document123321.findOne({ _docid: docId })
-    //   .then((foundDocument) => {
-    //     if (foundDocument) {
-    //       const parsedContent = JSON.parse(foundDocument.content);
-
-    //       // Update the Slate.js document with the parsed content
-    //       const insertDelta = slateNodesToInsertDelta(parsedContent);
-
-    //       const sharedRoot = data.document.get("content", Y.XmlText);
-    //       // console.log(`sharedRoot \n`, sharedRoot);
-    //       sharedRoot.applyDelta(insertDelta);
-    //     } else {
-    //       // Document with the specified _docid does not exist
-
-    //       const insertDelta = slateNodesToInsertDelta(initialValue);
-
-    //       const sharedRoot = data.document.get("content", Y.XmlText);
-    //       sharedRoot.applyDelta(insertDelta);
-
-    //       const slateElement = yTextToSlateElement(sharedRoot);
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error);
-    //   })
-    //   .finally(() => {
-    //     // Close the MongoDB connection when done
-    //     // mongoose.connection.close();
-    //   });
 
     return data.document;
   },
@@ -254,23 +166,10 @@ const server = Server.configure({
 
 // Setup your express instance using the express-ws extension
 const { app } = expressWebsockets(express());
+const connectedClients = new Set();
 
 // A basic http route
 app.get("/ws", async (request, response) => {
-  // const collection = mongoose.connection.db.collection("document123321");
-
-  // console.log(collection);
-  // .find({})
-
-  // const doc = await collection.find({}).toArray();
-
-  // .countDocuments()
-  // .then((doc) => {
-  // console.log(doc);
-  // })
-  // .catch((err) => {
-  //   console.error("Error connecting to MongoDB:", err);
-  // });
   response.send("Hello World!");
 });
 
@@ -284,16 +183,43 @@ app.ws("/ws/collaboration/:document", (websocket, request) => {
   const docId = request.params.document;
   // console.log(docId);
   const context = {
-    // user: {
-    //   id: 1234,
-    //   name: "Jane",
-    // },
-    // docId,
     docId,
   };
-
   server.handleConnection(websocket, request, context);
 });
+
+app.ws("/ws/variables/:document", (websocket, request) => {
+  console.log('Connected:', request.params.document);
+  connectedClients.add(websocket);
+
+  websocket.on('message', (message) => {
+    try {
+      const parsedMessage = message;
+      console.info(parsedMessage)
+      if (parsedMessage.event === 'hello') {
+        console.log('Received a custom event from a client:', parsedMessage.data);
+
+        connectedClients.forEach(client => {
+          if (client !== websocket) {
+            // Don't send the message back to the sender
+            client.send(JSON.stringify({ event: 'response-event', data: 'Response data' }));
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error parsing message:', error);
+    }
+  });
+
+  // Handle WebSocket disconnect
+  websocket.on('close', () => {
+    console.log('Disconnected:', request.params.document);
+    connectedClients.delete(websocket);
+  });
+});
+
+
+
 
 // Start the server
 const PORT = 1234;
