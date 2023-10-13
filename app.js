@@ -100,7 +100,7 @@ const server = Server.configure({
   },
 
   async onLoadDocument(data) {
-    console.log("##### onLoadDocument #####");
+    // console.log("##### onLoadDocument #####");
     // console.log("data.document \n", data.document); // Load the initial value in case the document is empty
     // console.log("data.document.name \n", data.document.name);
 
