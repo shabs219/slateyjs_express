@@ -153,7 +153,7 @@ const server = Server.configure({
     return data.document;
   },
   async onConnect(connection, request) {
-    console.log(`request.context\n`, connection.context);
+    // console.log(`request.context\n`, connection.context);
   },
   async connected() {
     console.log("connections:", server.getConnectionsCount());
