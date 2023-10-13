@@ -19,11 +19,12 @@ import express, { request } from "express";
 import expressWebsockets from "express-ws";
 import { Server } from "@hocuspocus/server";
 import { slateNodesToInsertDelta, yTextToSlateElement } from "@slate-yjs/core";
-import { Logger } from "@hocuspocus/extension-logger";
 import * as Y from "yjs";
 import mongoose from "mongoose";
 import sizeof from "object-sizeof";
+import { Database } from "@hocuspocus/extension-database";
 import { ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 
 const initialValue = [
 
@@ -53,7 +54,30 @@ const server = Server.configure({
   port: 1234,
   timeout: 30000,
   // Add logging
-  // extensions: [new Logger()],
+  extensions: [
+    new Database({
+      async fetch({ documentName }) {
+        const db = await MongoClient.connect("mongodb://127.0.0.1:27017/ihx-clm?replicaSet=rs0",);
+        const documentCollection = db.db("ihx-clm").collection("documents");
+        const versionCollection = db.db("ihx-clm").collection("documentversions");
+        const document = await documentCollection.findOne({ _id: new ObjectId(documentName) });
+        const version = await versionCollection.findOne({ _id: document.head_document_version })
+        return version?.body;
+      },
+      async store({ documentName, state }) {
+        const db = await MongoClient.connect("mongodb://127.0.0.1:27017/ihx-clm?replicaSet=rs0",);
+        const documentCollection = db.db("ihx-clm").collection("documents");
+        const versionCollection = db.db("ihx-clm").collection("documentversions");
+        const document = await documentCollection.findOne({ _id: new ObjectId(documentName) });
+        await versionCollection.updateOne(
+          { _id: document.head_document_version },
+          { $set: { body: state } },
+          { upsert: true }
+        );
+      },
+    }),
+  ],
+  // extensions
 
   async onStoreDocument(data) {
     // console.log("##### onStoreDocument #####");
@@ -62,47 +86,52 @@ const server = Server.configure({
     const slateElementOnStore = yTextToSlateElement(sharedRoot);
 
     const dataToStore = slateElementOnStore.children;
-    // console.log("sizeOf dataToStore\n", dataToStore);
+    // // console.log("sizeOf dataToStore\n", dataToStore);
 
-    const dataToStoreJsonString = JSON.stringify(dataToStore);
+    // const dataToStoreJsonString = JSON.stringify(dataToStore);
 
-    // console.log(
-    //   "sizeOf dataToStoreJsonString\n",
-    //   sizeof(dataToStoreJsonString)
+    // // console.log(
+    // //   "sizeOf dataToStoreJsonString\n",
+    // //   sizeof(dataToStoreJsonString)
+    // // );
+
+    // const { docId } = data.context;
+
+    // const Document = mongoose.connection.db.collection("documents");
+
+    // const objId = new ObjectId(data.document.name);
+
+    // const result = await Document.findOne({ _id: objId });
+
+    // // console.log("Document\n", result);
+
+    // const head_document_version = result.head_document_version;
+
+    // // console.log("result.head_document_version\n", head_document_version);
+
+    // const documentVersions =
+    //   mongoose.connection.db.collection("documentversions");
+
+    // const updatedContent = await documentVersions.findOneAndUpdate(
+    //   { _id: head_document_version },
+    //   { $set: { body: dataToStore } },
+    //   { upsert: true, new: true }
     // );
 
-    const { docId } = data.context;
-
-    const Document = mongoose.connection.db.collection("documents");
-
-    const objId = new ObjectId(data.document.name);
-
-    const result = await Document.findOne({ _id: objId });
-
-    // console.log("Document\n", result);
-
-    const head_document_version = result.head_document_version;
-
-    // console.log("result.head_document_version\n", head_document_version);
-
-    const documentVersions =
-      mongoose.connection.db.collection("documentversions");
-
-    const updatedContent = await documentVersions.findOneAndUpdate(
-      { _id: head_document_version },
-      { $set: { body: dataToStore } },
-      { upsert: true, new: true }
-    );
-
     // console.log("documentVersion\n", updatedContent);
+
+
+    const db = await MongoClient.connect("mongodb://localhost:27017/ihx-clm?replicaSet=rs0");
+    const documentCollection = db.db("ihx-clm").collection("documents");
+    const versionCollection = db.db("ihx-clm").collection("documentversions");
+    const document = await documentCollection.findOne({ _id: new ObjectId(data.document.name) });
+    const version = await versionCollection.findOneAndUpdate({ _id: document.head_document_version }, { $set: { body: dataToStore } }, { upsert: true, new: true })
+
 
     return data.document;
   },
 
   async onLoadDocument(data) {
-    // console.log("##### onLoadDocument #####");
-    // console.log("data.document \n", data.document); // Load the initial value in case the document is empty
-    // console.log("data.document.name \n", data.document.name);
 
     const { docId } = data.context;
 
@@ -114,7 +143,7 @@ const server = Server.configure({
 
     const result = await Document.findOne({ _id: objId });
 
-    // console.log("Document\n", result);
+    //   // // console.log("Document\n", result);
 
     const head_document_version = result.head_document_version;
     // console.log("result.head_document_version\n", head_document_version);
@@ -131,7 +160,7 @@ const server = Server.configure({
 
     const doc = content.body;
 
-    // console.log("doc Contents\n", doc);
+    //   // // console.log("doc Contents\n", doc);
 
     if (doc.length > 0) {
       const insertDelta = slateNodesToInsertDelta(doc);
@@ -181,7 +210,7 @@ app.ws("/ws/collaboration/:document", (websocket, request) => {
   // console.log("Entering the socket endpoint");
   // console.info(request.path);
   const docId = request.params.document;
-  // console.log(docId);
+
   const context = {
     docId,
   };
