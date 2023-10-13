@@ -56,20 +56,20 @@ const server = Server.configure({
   // extensions: [new Logger()],
 
   async onStoreDocument(data) {
-    console.log("##### onStoreDocument #####");
+    // console.log("##### onStoreDocument #####");
     const sharedRoot = data.document.get("content", Y.XmlText);
 
     const slateElementOnStore = yTextToSlateElement(sharedRoot);
 
     const dataToStore = slateElementOnStore.children;
-    console.log("sizeOf dataToStore\n", dataToStore);
+    // console.log("sizeOf dataToStore\n", dataToStore);
 
     const dataToStoreJsonString = JSON.stringify(dataToStore);
 
-    console.log(
-      "sizeOf dataToStoreJsonString\n",
-      sizeof(dataToStoreJsonString)
-    );
+    // console.log(
+    //   "sizeOf dataToStoreJsonString\n",
+    //   sizeof(dataToStoreJsonString)
+    // );
 
     const { docId } = data.context;
 
@@ -79,11 +79,11 @@ const server = Server.configure({
 
     const result = await Document.findOne({ _id: objId });
 
-    console.log("Document\n", result);
+    // console.log("Document\n", result);
 
     const head_document_version = result.head_document_version;
 
-    console.log("result.head_document_version\n", head_document_version);
+    // console.log("result.head_document_version\n", head_document_version);
 
     const documentVersions =
       mongoose.connection.db.collection("documentversions");
@@ -94,7 +94,7 @@ const server = Server.configure({
       { upsert: true, new: true }
     );
 
-    console.log("documentVersion\n", updatedContent);
+    // console.log("documentVersion\n", updatedContent);
 
     return data.document;
   },
@@ -102,7 +102,7 @@ const server = Server.configure({
   async onLoadDocument(data) {
     console.log("##### onLoadDocument #####");
     // console.log("data.document \n", data.document); // Load the initial value in case the document is empty
-    console.log("data.document.name \n", data.document.name);
+    // console.log("data.document.name \n", data.document.name);
 
     const { docId } = data.context;
 
@@ -110,14 +110,14 @@ const server = Server.configure({
 
     const objId = new ObjectId(data.document.name);
 
-    console.log("typeof data.document.name\n", objId);
+    // console.log("typeof data.document.name\n", objId);
 
     const result = await Document.findOne({ _id: objId });
 
-    console.log("Document\n", result);
+    // console.log("Document\n", result);
 
     const head_document_version = result.head_document_version;
-    console.log("result.head_document_version\n", head_document_version);
+    // console.log("result.head_document_version\n", head_document_version);
 
     const documentVersions =
       mongoose.connection.db.collection("documentversions");
@@ -127,11 +127,11 @@ const server = Server.configure({
       _id: head_document_version,
     });
 
-    console.log("documentVersion\n", content);
+    // console.log("documentVersion\n", content);
 
     const doc = content.body;
 
-    console.log("doc Contents\n", doc);
+    // console.log("doc Contents\n", doc);
 
     if (doc.length > 0) {
       const insertDelta = slateNodesToInsertDelta(doc);
