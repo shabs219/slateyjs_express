@@ -79,7 +79,7 @@ const server = Server.configure({
 
     const result = await Document.findOne({ _id: objId });
 
-    // console.log("Document\n", result);
+    console.log("Document\n", result);
 
     const head_document_version = result.head_document_version;
 
