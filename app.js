@@ -116,41 +116,45 @@ const server = Server.configure({
 
     // console.log("Document\n", result);
 
-    const head_document_version = result.head_document_version;
-    // console.log("result.head_document_version\n", head_document_version);
+    if (result) {
 
-    const documentVersions =
-      mongoose.connection.db.collection("documentversions");
-    // {_id: ObjectId("64e2f658006354046b294d25")}
+      const head_document_version = result.head_document_version;
+      // console.log("result.head_document_version\n", head_document_version);
 
-    const content = await documentVersions.findOne({
-      _id: head_document_version,
-    });
+      const documentVersions =
+        mongoose.connection.db.collection("documentversions");
+      // {_id: ObjectId("64e2f658006354046b294d25")}
 
-    // console.log("documentVersion\n", content);
+      const content = await documentVersions.findOne({
+        _id: head_document_version,
+      });
 
-    const doc = content.body;
+      // console.log("documentVersion\n", content);
 
-    // console.log("doc Contents\n", doc);
+      const doc = content.body;
 
-    if (doc.length > 0) {
-      const insertDelta = slateNodesToInsertDelta(doc);
+      // console.log("doc Contents\n", doc);
 
-      const sharedRoot = data.document.get("content", Y.XmlText);
-      // console.log(`sharedRoot \n`, sharedRoot);
-      sharedRoot.applyDelta(insertDelta);
-    } else {
-      // Document with the specified _docid does not exist
+      if (doc.length > 0) {
+        const insertDelta = slateNodesToInsertDelta(doc);
 
-      const insertDelta = slateNodesToInsertDelta(initialValue);
+        const sharedRoot = data.document.get("content", Y.XmlText);
+        // console.log(`sharedRoot \n`, sharedRoot);
+        sharedRoot.applyDelta(insertDelta);
+      } else {
+        // Document with the specified _docid does not exist
 
-      const sharedRoot = data.document.get("content", Y.XmlText);
-      sharedRoot.applyDelta(insertDelta);
+        const insertDelta = slateNodesToInsertDelta(initialValue);
 
-      const slateElement = yTextToSlateElement(sharedRoot);
+        const sharedRoot = data.document.get("content", Y.XmlText);
+        sharedRoot.applyDelta(insertDelta);
+
+        const slateElement = yTextToSlateElement(sharedRoot);
+      }
+
+      return data.document;
     }
 
-    return data.document;
   },
   async onConnect(connection, request) {
     // console.log(`request.context\n`, connection.context);
