@@ -9,10 +9,10 @@ mongoose
     }
   )
   .then(() => {
-    console.log("Connected to MongoDB");
+    // console.log("Connected to MongoDB");
   })
   .catch((err) => {
-    console.error("Error connecting to MongoDB:", err);
+    // console.error("Error connecting to MongoDB:", err);
   });
 
 import express, { request } from "express";
@@ -79,7 +79,7 @@ const server = Server.configure({
 
     const result = await Document.findOne({ _id: objId });
 
-    console.log("Document\n", result);
+    // console.log("Document\n", result);
 
     const head_document_version = result.head_document_version;
 
@@ -100,7 +100,7 @@ const server = Server.configure({
   },
 
   async onLoadDocument(data) {
-    // console.log("##### onLoadDocument #####");
+    console.log("##### onLoadDocument #####");
     // console.log("data.document \n", data.document); // Load the initial value in case the document is empty
     // console.log("data.document.name \n", data.document.name);
 
@@ -138,6 +138,10 @@ const server = Server.configure({
       if (doc.length > 0) {
         const insertDelta = slateNodesToInsertDelta(doc);
 
+        console.log('!!!!!!!!!!!!!!! doc !!!!!!!!!!!!!!!')
+        console.log(doc)
+        console.log('!!!!!!!!!!!!!!! data.document !!!!!!!!!!!!!!!')
+        console.log(data.document)
         const sharedRoot = data.document.get("content", Y.XmlText);
         // console.log(`sharedRoot \n`, sharedRoot);
         sharedRoot.applyDelta(insertDelta);
@@ -199,9 +203,9 @@ app.ws("/ws/variables/:document", (websocket, request) => {
   websocket.on('message', (message) => {
     try {
       const parsedMessage = JSON.parse(message);  
-      console.info(parsedMessage)
+      // console.info(parsedMessage)
       if (parsedMessage.event) {
-        console.log('Received a custom event from a client:', parsedMessage.data);
+        // console.log('Received a custom event from a client:', parsedMessage.data);
 
         connectedClients.forEach(client => {
           if (client !== websocket) {
@@ -211,7 +215,7 @@ app.ws("/ws/variables/:document", (websocket, request) => {
         });
       }
     } catch (error) {
-      console.error('Error parsing message:', error);
+      // console.error('Error parsing message:', error);
     }
   });
 
