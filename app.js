@@ -56,15 +56,18 @@ const server = Server.configure({
   // extensions: [new Logger()],
 
   async onStoreDocument(data) {
-    // console.log("##### onStoreDocument #####");
+    console.info('onstore')
+
     const sharedRoot = data.document.get("content", Y.XmlText);
 
     const slateElementOnStore = yTextToSlateElement(sharedRoot);
 
     const dataToStore = slateElementOnStore.children;
+
     // console.log("sizeOf dataToStore\n", dataToStore);
 
     const dataToStoreJsonString = JSON.stringify(dataToStore);
+    // console.info('onstore', dataToStoreJsonString)
 
     // console.log(
     //   "sizeOf dataToStoreJsonString\n",
@@ -78,29 +81,36 @@ const server = Server.configure({
     const objId = new ObjectId(data.document.name);
 
     const result = await Document.findOne({ _id: objId });
+    if (result) {
+
+      const head_document_version = result.head_document_version;
+
+      // console.log("result.head_document_version\n", head_document_version);
+
+      const documentVersions =
+        mongoose.connection.db.collection("documentversions");
+
+      const updatedContent = await documentVersions.findOneAndUpdate(
+        { _id: head_document_version },
+        { $set: { body: dataToStore } },
+        { upsert: true, new: true }
+      );
+
+      // console.log(updatedContent)
+
+
+      // console.log("documentVersion\n", updatedContent);
+
+      return data.document;
+    }
 
     // console.log("Document\n", result);
 
-    const head_document_version = result.head_document_version;
-
-    // console.log("result.head_document_version\n", head_document_version);
-
-    const documentVersions =
-      mongoose.connection.db.collection("documentversions");
-
-    const updatedContent = await documentVersions.findOneAndUpdate(
-      { _id: head_document_version },
-      { $set: { body: dataToStore } },
-      { upsert: true, new: true }
-    );
-
-    // console.log("documentVersion\n", updatedContent);
-
-    return data.document;
   },
 
   async onLoadDocument(data) {
-    console.log("##### onLoadDocument #####");
+    console.info('onload')
+
     // console.log("data.document \n", data.document); // Load the initial value in case the document is empty
     // console.log("data.document.name \n", data.document.name);
 
@@ -116,7 +126,7 @@ const server = Server.configure({
 
     // console.log("Document\n", result);
 
-    if (result) {
+
 
       const head_document_version = result.head_document_version;
       // console.log("result.head_document_version\n", head_document_version);
@@ -129,6 +139,8 @@ const server = Server.configure({
         _id: head_document_version,
       });
 
+    console.info(content.body)
+
       // console.log("documentVersion\n", content);
 
       const doc = content.body;
@@ -138,15 +150,9 @@ const server = Server.configure({
       if (doc.length > 0) {
         const insertDelta = slateNodesToInsertDelta(doc);
 
-        console.log('!!!!!!!!!!!!!!! doc !!!!!!!!!!!!!!!')
-        console.log(doc)
-        console.log('!!!!!!!!!!!!!!! data.document !!!!!!!!!!!!!!!')
-        console.log(data.document)
         const sharedRoot = data.document.get("content", Y.XmlText);
-        // console.log(`sharedRoot \n`, sharedRoot);
         sharedRoot.applyDelta(insertDelta);
       } else {
-        // Document with the specified _docid does not exist
 
         const insertDelta = slateNodesToInsertDelta(initialValue);
 
@@ -156,8 +162,8 @@ const server = Server.configure({
         const slateElement = yTextToSlateElement(sharedRoot);
       }
 
-      return data.document;
-    }
+    // return data.document;
+
 
   },
   async onConnect(connection, request) {
@@ -167,6 +173,7 @@ const server = Server.configure({
     console.log("connections:", server.getConnectionsCount());
   },
   async onDisconnect(data) {
+
     // Output some information
     console.log(`disconnected:`, server.getConnectionsCount());
   },
