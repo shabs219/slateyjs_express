@@ -2,6 +2,7 @@ mongoose
   .connect(
     // "mongodb+srv://parikshith:Lqs55hsYgDJ66EAH@ihx.rgbcqfy.mongodb.net/ihx",
     "mongodb://127.0.0.1:27017/ihx-clm?replicaSet=rs0",
+    // "mongodb://127.0.0.1:27017/ihx-clm",
     //"mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
     {
       useNewUrlParser: true,
@@ -26,12 +27,10 @@ import sizeof from "object-sizeof";
 import { ObjectId } from "mongodb";
 
 const initialValue = [
-
   {
     type: "paragraph",
     children: [{ type: "text", text: "" }],
   },
-
 ];
 const initialValue2 = [
   {
@@ -45,9 +44,6 @@ const initialValue2 = [
   },
 ];
 
-
-
-
 // Configure Hocuspocus
 const server = Server.configure({
   port: 1234,
@@ -56,8 +52,7 @@ const server = Server.configure({
   // extensions: [new Logger()],
 
   async onStoreDocument(data) {
-    console.info('onstore')
-
+    console.log("##### onStoreDocument #####");
     const sharedRoot = data.document.get("content", Y.XmlText);
 
     const slateElementOnStore = yTextToSlateElement(sharedRoot);
@@ -95,6 +90,7 @@ const server = Server.configure({
         { $set: { body: dataToStore } },
         { upsert: true, new: true }
       );
+    console.log("Document\n", data.document.name);
 
       // console.log(updatedContent)
 
@@ -120,16 +116,15 @@ const server = Server.configure({
 
     const objId = new ObjectId(data.document.name);
 
-    // console.log("typeof data.document.name\n", objId);
+    console.log("typeof data.document.name\n", objId);
 
     const result = await Document.findOne({ _id: objId });
 
     // console.log("Document\n", result);
 
-
-
+    if (result) {
       const head_document_version = result.head_document_version;
-      // console.log("result.head_document_version\n", head_document_version);
+      console.log("result.head_document_version\n", head_document_version);
 
       const documentVersions =
         mongoose.connection.db.collection("documentversions");
@@ -150,8 +145,23 @@ const server = Server.configure({
       if (doc.length > 0) {
         const insertDelta = slateNodesToInsertDelta(doc);
 
+        // console.log("!!!!!!!!!!!!!!! doc !!!!!!!!!!!!!!!");
+        // console.log("doc\n", doc);
+        // console.log("!!!!!!!!!!!!!!! data.document !!!!!!!!!!!!!!!");
+        // console.log("data.document\n", data.document);
+        // console.log(
+        //   "data.document.isEmpty()\n",
+        //   data.document.isEmpty("content")
+        // );
+
         const sharedRoot = data.document.get("content", Y.XmlText);
+        // console.log(`sharedRoot \n`, sharedRoot.doc);
         sharedRoot.applyDelta(insertDelta);
+        // console.log(
+        //   "data.document.isEmpty()\n",
+        //   data.document.isEmpty("content")
+        // );
+        // sharedRoot.doc
       } else {
 
         const insertDelta = slateNodesToInsertDelta(initialValue);
@@ -162,20 +172,45 @@ const server = Server.configure({
         const slateElement = yTextToSlateElement(sharedRoot);
       }
 
-    // return data.document;
-
-
+      return data.document;
+    }
   },
-  async onConnect(connection, request) {
-    // console.log(`request.context\n`, connection.context);
+  async onConnect(data) {
+    console.log("########## onConnect ##########")
+    // console.log(`data.documentName from onConnect\n`, data.documentName);
+    // console.log(`data.socketId from onConnect\n`, data.socketId);
+    // console.log(`data.connection from onConnect\n`, data.connection);
+    data.connection.requiresAuthentication = true;
   },
-  async connected() {
-    console.log("connections:", server.getConnectionsCount());
+  async connected(data) {
+    console.log("########## connected ##########")
+
+    // console.log("connections:", server.getConnectionsCount());
+    // console.log(
+    //   "connectionInstance.document:",
+    //   data.connectionInstance.document.directConnectionsCount
+    // );
+    // console.log(
+    //   "document Count:",
+    //   server.getDocumentsCount(),`\n`,
+    //   "getConnectionsCount:",
+    //   server.getConnectionsCount()
+    // );
   },
   async onDisconnect(data) {
 
     // Output some information
     console.log(`disconnected:`, server.getConnectionsCount());
+    // console.log(server.closeConnections(data.documentName));
+    // server.closeConnections(data.documentName)
+  },
+  async onAuthenticate(data) {
+    console.log(`data.token frmo onAuthenticate \n`, data.token);
+    return {
+      user: {
+        name: data.token,
+      },
+    };
   },
 });
 
@@ -196,7 +231,7 @@ app.ws("/ws/collaboration/:document", (websocket, request) => {
   // console.log("Entering the socket endpoint");
   // console.info(request.path);
   const docId = request.params.document;
-  // console.log(docId);
+  console.log(`docId\n`,docId);
   const context = {
     docId,
   };
@@ -204,20 +239,25 @@ app.ws("/ws/collaboration/:document", (websocket, request) => {
 });
 
 app.ws("/ws/variables/:document", (websocket, request) => {
-  console.log('Connected:', request.params.document);
+  console.log("Connected:", request.params.document);
   connectedClients.add(websocket);
 
-  websocket.on('message', (message) => {
+  websocket.on("message", (message) => {
     try {
-      const parsedMessage = JSON.parse(message);  
+      const parsedMessage = JSON.parse(message);
       // console.info(parsedMessage)
       if (parsedMessage.event) {
         // console.log('Received a custom event from a client:', parsedMessage.data);
 
-        connectedClients.forEach(client => {
+        connectedClients.forEach((client) => {
           if (client !== websocket) {
             // Don't send the message back to the sender
-            client.send(JSON.stringify({ event: parsedMessage.event, data: parsedMessage.data }));
+            client.send(
+              JSON.stringify({
+                event: parsedMessage.event,
+                data: parsedMessage.data,
+              })
+            );
           }
         });
       }
@@ -227,14 +267,11 @@ app.ws("/ws/variables/:document", (websocket, request) => {
   });
 
   // Handle WebSocket disconnect
-  websocket.on('close', () => {
-    console.log('Disconnected:', request.params.document);
+  websocket.on("close", () => {
+    console.log("Disconnected:", request.params.document);
     connectedClients.delete(websocket);
   });
 });
-
-
-
 
 // Start the server
 const PORT = 1234;
