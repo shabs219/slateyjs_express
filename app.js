@@ -1,8 +1,8 @@
 mongoose
   .connect(
     // "mongodb+srv://parikshith:Lqs55hsYgDJ66EAH@ihx.rgbcqfy.mongodb.net/ihx",
-    "mongodb://127.0.0.1:27017/ihx-clm?replicaSet=rs0",
-    // "mongodb://127.0.0.1:27017/ihx-clm",
+    // "mongodb://127.0.0.1:27017/ihx-clm?replicaSet=rs0",
+    "mongodb://127.0.0.1:27017/ihx-clm",
     //"mongodb+srv://shabhari:5ppK5MSgWZQUs91h@slate.1cmesxy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp",
     {
       useNewUrlParser: true,
@@ -61,6 +61,8 @@ const server = Server.configure({
 
     // console.log("sizeOf dataToStore\n", dataToStore);
 
+    console.log(`data.params\n`, data.requestParameters);
+
     const dataToStoreJsonString = JSON.stringify(dataToStore);
     // console.info('onstore', dataToStoreJsonString)
 
@@ -69,7 +71,7 @@ const server = Server.configure({
     //   sizeof(dataToStoreJsonString)
     // );
 
-    const { docId } = data.context;
+    const { docId, docVersion } = data.context;
 
     const Document = mongoose.connection.db.collection("documents");
 
@@ -77,11 +79,18 @@ const server = Server.configure({
 
     const result = await Document.findOne({ _id: objId });
     if (result) {
-
       const head_document_version = result.head_document_version;
 
-      // console.log("result.head_document_version\n", head_document_version);
+      console.log(`docVersion/n`, docVersion);
+      console.log("result.head_document_version\n", head_document_version);
 
+      if (docVersion == head_document_version) {
+        console.log("\n\n\nversion matched\n\n\n");
+      } else {
+        console.log("\n\n\nversion Mismatched\n\n\n");
+        server.closeConnections(data.documentName);
+        return;
+      }
       const documentVersions =
         mongoose.connection.db.collection("documentversions");
 
@@ -90,10 +99,9 @@ const server = Server.configure({
         { $set: { body: dataToStore } },
         { upsert: true, new: true }
       );
-    console.log("Document\n", data.document.name);
+      console.log("Document\n", data.document.name);
 
       // console.log(updatedContent)
-
 
       // console.log("documentVersion\n", updatedContent);
 
@@ -101,16 +109,15 @@ const server = Server.configure({
     }
 
     // console.log("Document\n", result);
-
   },
 
   async onLoadDocument(data) {
-    console.info('onload')
+    console.info("onload");
 
     // console.log("data.document \n", data.document); // Load the initial value in case the document is empty
     // console.log("data.document.name \n", data.document.name);
 
-    const { docId } = data.context;
+    const { docId, docVersion } = data.context;
 
     const Document = mongoose.connection.db.collection("documents");
 
@@ -124,6 +131,8 @@ const server = Server.configure({
 
     if (result) {
       const head_document_version = result.head_document_version;
+
+      console.log(`docVersion/n`, docVersion);
       console.log("result.head_document_version\n", head_document_version);
 
       const documentVersions =
@@ -134,7 +143,7 @@ const server = Server.configure({
         _id: head_document_version,
       });
 
-    console.info(content.body)
+      console.info(content.body);
 
       // console.log("documentVersion\n", content);
 
@@ -163,7 +172,6 @@ const server = Server.configure({
         // );
         // sharedRoot.doc
       } else {
-
         const insertDelta = slateNodesToInsertDelta(initialValue);
 
         const sharedRoot = data.document.get("content", Y.XmlText);
@@ -176,16 +184,16 @@ const server = Server.configure({
     }
   },
   async onConnect(data) {
-    console.log("########## onConnect ##########")
+    console.log("########## onConnect ##########");
     // console.log(`data.documentName from onConnect\n`, data.documentName);
     // console.log(`data.socketId from onConnect\n`, data.socketId);
     // console.log(`data.connection from onConnect\n`, data.connection);
     data.connection.requiresAuthentication = true;
   },
   async connected(data) {
-    console.log("########## connected ##########")
+    console.log("########## connected ##########");
 
-    // console.log("connections:", server.getConnectionsCount());
+    console.log("connections:", server.getConnectionsCount());
     // console.log(
     //   "connectionInstance.document:",
     //   data.connectionInstance.document.directConnectionsCount
@@ -198,11 +206,10 @@ const server = Server.configure({
     // );
   },
   async onDisconnect(data) {
-
     // Output some information
     console.log(`disconnected:`, server.getConnectionsCount());
     // console.log(server.closeConnections(data.documentName));
-    // server.closeConnections(data.documentName)
+    server.closeConnections(data.documentName);
   },
   async onAuthenticate(data) {
     console.log(`data.token frmo onAuthenticate \n`, data.token);
@@ -227,15 +234,25 @@ app.get("/ws", async (request, response) => {
 // Note: make sure to include a parameter for the document name.
 // You can set any contextual data like in the onConnect hook
 // and pass it to the handleConnection method.
-app.ws("/ws/collaboration/:document", (websocket, request) => {
+app.ws("/ws/collaboration/:document/:docVersion", (websocket, request) => {
   // console.log("Entering the socket endpoint");
   // console.info(request.path);
   const docId = request.params.document;
-  console.log(`docId\n`,docId);
+  const docVersion = request.params.docVersion;
+  console.log(`docId\n`, docId);
+  console.log(`docVersion\n`, docVersion);
   const context = {
     docId,
+    docVersion,
   };
-  server.handleConnection(websocket, request, context);
+
+  if (docVersion === null || docVersion === undefined) {
+    console.log("##################### DocVERSION #####################");
+    console.log(docVersion);
+    websocket.close();
+  } else {
+    server.handleConnection(websocket, request, context);
+  }
 });
 
 app.ws("/ws/variables/:document", (websocket, request) => {
