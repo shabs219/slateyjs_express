@@ -49,8 +49,15 @@ const server = Server.configure({
   port: 1234,
   timeout: 30000,
   // Add logging
-  // extensions: [new Logger()],
+  extensions: [
+    new Redis({
+      // [required] Hostname of your Redis instance
+      host: "127.0.0.1",
 
+      // [required] Port of your Redis instance
+      port: 6379,
+    }),
+  ],
   async onStoreDocument(data) {
     console.log("##### onStoreDocument #####");
     const sharedRoot = data.document.get("content", Y.XmlText);
