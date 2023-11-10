@@ -71,14 +71,16 @@ const server = Server.configure({
     if (result) {
       const head_document_version = result.head_document_version;
 
-      // console.log(`docVersion/n`, docVersion);
-      // console.log("result.head_document_version\n", head_document_version);
-
-      if (docVersion == head_document_version) {
-        // console.log("version matched\n");
-      } else {
-        // console.log("version Mismatched\n\n\n");
+      console.log(`\n\n\n\n\ndocVersion\n`, docVersion);
+      console.log("result.head_document_version\n", head_document_version.toString());
+      console.log(docVersion !== head_document_version.toString())
+      //   console.log(docVersion)
+      //   console.log(head_document_version)
+      if (docVersion != head_document_version) {
+        console.log("version Mismatched\n\n\n");
         server.closeConnections(data.documentName);
+      } else if(docVersion) {
+        // console.log("version matched\n");
         return;
       }
     }
@@ -241,7 +243,7 @@ const server = Server.configure({
     // Output some information
     console.log(`disconnected:`, server.getConnectionsCount());
     // console.log(server.closeConnections(data.documentName));
-    server.closeConnections(data.documentName);
+    // server.closeConnections(data.documentName);
   },
   async onAuthenticate(data) {
     console.log(`data.token frmo onAuthenticate \n`, data.token);
