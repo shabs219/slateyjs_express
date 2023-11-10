@@ -50,14 +50,39 @@ const server = Server.configure({
   timeout: 30000,
   // Add logging
   extensions: [
-    new Redis({
-      // [required] Hostname of your Redis instance
-      host: "127.0.0.1",
-
-      // [required] Port of your Redis instance
-      port: 6379,
-    }),
+    // new Redis({
+    //   // [required] Hostname of your Redis instance
+    //   host: "127.0.0.1",
+    //   // [required] Port of your Redis instance
+    //   port: 6379,
+    // }),
   ],
+  async onAwarenessUpdate(data) {
+    console.log(`onAwarnessUpdate\n`, data.context);
+
+    const { docId, docVersion } = data.context;
+
+    const Document = mongoose.connection.db.collection("documents");
+
+    const objId = new ObjectId(data.document.name);
+
+    const result = await Document.findOne({ _id: objId });
+
+    if (result) {
+      const head_document_version = result.head_document_version;
+
+      // console.log(`docVersion/n`, docVersion);
+      // console.log("result.head_document_version\n", head_document_version);
+
+      if (docVersion == head_document_version) {
+        console.log("version matched\n");
+      } else {
+        console.log("version Mismatched\n\n\n");
+        server.closeConnections(data.documentName);
+        return;
+      }
+    }
+  },
   async onStoreDocument(data) {
     console.log("##### onStoreDocument #####");
     const sharedRoot = data.document.get("content", Y.XmlText);
