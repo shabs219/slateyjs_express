@@ -58,7 +58,7 @@ const server = Server.configure({
     // }),
   ],
   async onAwarenessUpdate(data) {
-    console.log(`onAwarnessUpdate\n`, data.context);
+    // console.log(`onAwarnessUpdate\n`, data.context);
 
     const { docId, docVersion } = data.context;
 
@@ -75,9 +75,9 @@ const server = Server.configure({
       // console.log("result.head_document_version\n", head_document_version);
 
       if (docVersion == head_document_version) {
-        console.log("version matched\n");
+        // console.log("version matched\n");
       } else {
-        console.log("version Mismatched\n\n\n");
+        // console.log("version Mismatched\n\n\n");
         server.closeConnections(data.documentName);
         return;
       }
