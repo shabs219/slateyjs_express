@@ -289,7 +289,7 @@ app.ws("/ws/collaboration/:document/:docVersion", (websocket, request) => {
   }
 });
 
-app.ws("/ws/variables/:document", (websocket, request) => {
+app.ws("/ws/documents/:document", (websocket, request) => {
   console.log("Connected:", request.params.document);
   connectedClients.add(websocket);
 
